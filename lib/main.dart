@@ -1,87 +1,124 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-void main() {
-  runApp(const MyApp());
+class Product {
+  String search_image;
+  String styleid;
+  String brands_filter_facet;
+  String price;
+  String product_additional;
+  Product({
+    required this.search_image,
+    required this.styleid,
+    required this.brands_filter_facet,
+    required this.price,
+    required this.product_additional,
+  } );
 }
 
-class MyApp extends StatelessWidget {
+//Khai bao screen
+class ProductListScreen extends StatefulWidget{
+  @override
+  _ProductListScreenState createState() => _ProductListScreenState();
+}
+//dinh nghia
+class _ProductListScreenState extends State<ProductListScreen>{
+  
+  late List<Product> products;
+  //khoi tao trang thai
+  @override
+  void initState(){
+    super.initState();
+    products = [];
+    fetchProducts(); //ham lay toan bo san pham tu server
+  }
+
+  //doc du lieu tu server
+  List<Product> convertMapToList(Map<String, dynamic> data){
+    List<Product> productList = [];
+    data.forEach((key, value){
+      for (int i = 0; i < value.length; i++){
+        Product product = Product(
+          search_image: value[i]['search_image'] ?? '', 
+          styleid: value[i]['styleid'] ?? 0, 
+          brands_filter_facet: value[i]["brands_filter_facet"] ?? '', 
+          price: value[i]['price'] ?? 0, 
+          product_additional: value[i]['product_additional'] ?? '');
+        productList.add(product);
+      }
+    });
+    return productList;
+  }
+
+  Future<void> fetchProducts() async {
+    final response = await http.get(Uri.parse("http://192.168.1.44/aflutter/api.php"));
+    if(response.statusCode == 200){
+      final Map<String, dynamic> data = json.decode(response.body);
+
+      setState(() {
+        products = convertMapToList(data);
+
+      });
+    }
+    else {
+      throw Exception("khong co du lieu");
+    }
+  }
+
+  //layout hien thi du lieu
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("danh sach san pham"),
+      ),
+      body: products != null ? 
+      ListView.builder(
+        itemCount: products.length,
+        itemBuilder: (context, index){
+          return ListTile(
+            title: Text(products[index].brands_filter_facet),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Price: ${products[index].price}"),
+
+              ],
+            ),
+            leading: Image.network(
+              products[index].search_image,
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+            ),
+          );
+        }
+      ) : Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class MyApp extends StatelessWidget{
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: "Danh sach san pham",
       theme: ThemeData(
-
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home:  MyCalculator(),
+      home: ProductListScreen(), 
     );
   }
 }
-class MyCalculator extends StatefulWidget{
-  @override
-  _MyCalculatorState createState() {
-    return _MyCalculatorState();
-  }
-}
-//lop quan ly trang thai cua man hinh chinh
-class _MyCalculatorState extends State<MyCalculator>{
-  TextEditingController num1Control=TextEditingController();//text1
-  TextEditingController num2Control=TextEditingController();//text2
-  //bien luu ket qua tinh toan
-  String kq='';
-  //ham tinh tong va cap nhat trang thai
-  void calculatorSum(){
-    //lay gia tri tu 2 o nhap lieu
-    double num1=double.tryParse(num1Control.text) ?? 0.0;
-    double num2=double.tryParse(num2Control.text) ?? 0.0;
-    double num=num1+num2;
-    //cap nhat trang thai
-    setState(() {
-      kq= 'Tong: $num';
-    });
-  }
-  //giao dien cua activity
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(//tra ve 1 man hinh
-      appBar: AppBar(
-        title: Text('Ung dung tinh tong'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            //thanh phan chinh - text1
-            TextField(
-              controller: num1Control,//gan voi so1
-              keyboardType: TextInputType.number,//chi cho nhap so
-              decoration: InputDecoration(labelText: 'Nhap so 1'),//hint
-            ),
-            SizedBox(height: 10.0),//khoang cach
-            //thanh phan chinh - text2
-            TextField(
-              controller: num2Control,//gan voi so1
-              keyboardType: TextInputType.number,//chi cho nhap so
-              decoration: InputDecoration(labelText: 'Nhap so 2'),//hint
-            ),
-            SizedBox(height: 20.0),//khoang cach
-            //thanh phan chinh - Button click
-            ElevatedButton(onPressed: calculatorSum, child: Text('Tinh tong')),
-            SizedBox(height: 20.0),//khoang cach
-            //thanh phan chinh - Hien thi ket qua
-            Text(
-              kq,
-              style: TextStyle(fontSize: 18.0,fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
+void main (){
+  runApp(const MyApp());
 }
-
