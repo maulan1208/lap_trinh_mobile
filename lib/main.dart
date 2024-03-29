@@ -28,6 +28,9 @@ class _ProductListScreenState extends State<ProductListScreen>{
   
   late List<Product> products;
   //khoi tao trang thai
+  //khoi tao gio hang
+
+  final Cart cart = Cart();
   @override
   void initState(){
     super.initState();
@@ -101,7 +104,7 @@ class _ProductListScreenState extends State<ProductListScreen>{
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => 
-                ProductDetailScreen(products[index])),
+                  ProductDetailScreen(products[index], cart)),
               );
             },
           );
@@ -115,19 +118,32 @@ class _ProductListScreenState extends State<ProductListScreen>{
 
 class ProductDetailScreen extends StatelessWidget{
   final Product product;
-  ProductDetailScreen(this.product);
+  final Cart cart;
+  ProductDetailScreen(this.product, this.cart);
 
   @override
   Widget build(BuildContext context) {
       return Scaffold(
         appBar: AppBar(
           title: Text('Product Detail'),
+          actions: [
+            ElevatedButton(onPressed: (){
+              cart.addToCart(product);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("them san pham vao gio hang")),
+              );
+              Navigator.push(
+                context, 
+                MaterialPageRoute
+                (builder: (context)=>CartScreen(cart: cart)));
+            }, 
+            child: Text('add to cart'))
+          ],
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(padding: 
-            EdgeInsets.all(0.0)),
+            Padding(padding: EdgeInsets.all(0.0)),
             Image.network(product.search_image),
             Padding(
               padding: EdgeInsets.all(0.0),
@@ -180,6 +196,38 @@ class HomeScreen extends StatelessWidget{
         ),
       ),
     );
+  }
+}
+
+class Cart{
+  List<Product> items = [];
+  void addToCart(Product product){
+    items.add(product);
+  }
+}
+
+class CartScreen extends StatelessWidget {
+  final Cart cart; 
+  CartScreen ({required this.cart});
+  
+  //giao dien
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("gio hang"),
+      ),
+      body: ListView .builder(
+        itemCount: cart.items.length,  
+        itemBuilder: (context, index){
+          return ListTile(
+            title: Text(cart.items[index].search_image),
+            subtitle: Text(cart.items[index].price),
+          );
+        }
+      )
+    );
+
   }
 }
 
