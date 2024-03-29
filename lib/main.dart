@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -75,6 +76,7 @@ class _ProductListScreenState extends State<ProductListScreen>{
       appBar: AppBar(
         title: Text("danh sach san pham"),
       ),
+      // ignore: unnecessary_null_comparison
       body: products != null ? 
       ListView.builder(
         itemCount: products.length,
@@ -94,6 +96,14 @@ class _ProductListScreenState extends State<ProductListScreen>{
               height: 50,
               fit: BoxFit.cover,
             ),
+            // them su kien
+            onTap:(){
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => 
+                ProductDetailScreen(products[index])),
+              );
+            },
           );
         }
       ) : Center(
@@ -102,6 +112,35 @@ class _ProductListScreenState extends State<ProductListScreen>{
     );
   }
 }
+
+class ProductDetailScreen extends StatelessWidget{
+  final Product product;
+  ProductDetailScreen(this.product);
+
+  @override
+  Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Product Detail'),
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(padding: 
+            EdgeInsets.all(0.0)),
+            Image.network(product.search_image),
+            Padding(
+              padding: EdgeInsets.all(0.0),
+              child: Text('Styleid:  ${product.styleid}'),
+              ),
+            Padding(
+              padding: EdgeInsets.all(0.0),
+              child: Text('brands filter dacet:  ${product.brands_filter_facet}'),
+              ),  
+          ],
+        ),
+      );
+  }}
 
 class MyApp extends StatelessWidget{
   const MyApp({super.key});
@@ -114,7 +153,32 @@ class MyApp extends StatelessWidget{
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: ProductListScreen(), 
+      home: HomeScreen(), 
+      // ProductListScreen(), 
+    );
+  }
+}
+
+//dinh nghia homeScreen
+class HomeScreen extends StatelessWidget{
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("home screen"),
+      ),
+      body: Center(
+        //dinh nghia button de khi click thi goi listScreen
+        child: ElevatedButton(
+          onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProductListScreen())
+              );
+          },
+          child: Text("Go to list screen"),
+        ),
+      ),
     );
   }
 }
